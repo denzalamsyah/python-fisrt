@@ -39,3 +39,11 @@ Base = declarative_base()
 
 # # Base class untuk model database
 # Base = declarative_base()
+
+
+def get_db():
+    db = SessionLocal()  # Membuka sesi baru (koneksi ke database)
+    try:
+        yield db  # Mengembalikan sesi yang terbuka ke pemanggil fungsi
+    finally:
+        db.close()  # Menutup sesi setelah selesai
