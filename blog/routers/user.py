@@ -3,12 +3,15 @@ from fastapi import APIRouter, Depends, status, Response, HTTPException
 from .. import schema, models, database,hashing
 from sqlalchemy.orm import Session
 
-router = APIRouter()
+router = APIRouter(
+    prefix='/user',
+    tags=['Users']
+)
 
 
 '''User Endpoint'''
 # post user
-@router.post('/user',tags=['users'])
+@router.post('/')
 def create_user(request:schema.User, db:Session = Depends(database.get_db)):
     new_user = models.User(name=request.name, email=request.email, password=hashing.Hash.bcrypt(request.password))
     db.add(new_user) 
@@ -17,14 +20,14 @@ def create_user(request:schema.User, db:Session = Depends(database.get_db)):
     return new_user
 
 # get user
-@router.get('/user', response_model=List[schema.ShowUser],tags=['users']) #menampilkan tanpa id dan password
+@router.get('/', response_model=List[schema.ShowUser]) #menampilkan tanpa id dan password
 def all_user(db:Session = Depends(database.get_db)):
     users = db.query(models.User).all()
     return users
 
 
 # get by id
-@router.get('/user/{id}', status_code=status.HTTP_200_OK, response_model=schema.ShowUser,tags=['users']) # response_model=schema.ShowBlog --> supaya response tidak menampilkan id (sesuai dengan schema.showblog)
+@router.get('/{id}', status_code=status.HTTP_200_OK, response_model=schema.ShowUser) # response_model=schema.ShowBlog --> supaya response tidak menampilkan id (sesuai dengan schema.showblog)
 def show_user(id, response:Response, db:Session = Depends(database.get_db)):
     user = db.query(models.User).filter(models.User.id == id).first()
     if not user:
@@ -33,7 +36,7 @@ def show_user(id, response:Response, db:Session = Depends(database.get_db)):
     return user
 
 # delete
-@router.delete('/user/{id}', status_code=status.HTTP_204_NO_CONTENT,tags=['users'])
+@router.delete('/{id}', status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(id, db:Session = Depends(database.get_db)):
      user = db.query(models.User).filter(models.User.id == id).first()
      if not user:

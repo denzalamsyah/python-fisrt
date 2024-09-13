@@ -3,18 +3,21 @@ from fastapi import APIRouter, Depends, status, Response, HTTPException
 from .. import schema, models, database
 from sqlalchemy.orm import Session
 
-router = APIRouter()
+router = APIRouter(
+    prefix='/blog', # membuat rute diawali dengan /blog kalau digolang kaya grup
+    tags=['Blogs'] # menambah tag blogs secara efektif
+)
 
 '''Blog Endpoint'''
 # get blog
 # @router.get('/blog', tags=['blogs'])
-@router.get('/blog', response_model=List[schema.ShowBlog], tags=['blogs']) #menampilkan tanpa id
+@router.get('/', response_model=List[schema.ShowBlog]) #menampilkan tanpa id
 def all(db:Session = Depends(database.get_db)):
     blogs = db.query(models.Blog).all()
     return blogs
 
 # add blog
-@router.post('/blog', status_code=status.HTTP_201_CREATED, tags=['blogs'])
+@router.post('/', status_code=status.HTTP_201_CREATED)
 def create(request: schema.Blog, db:Session = Depends(database.get_db)):
    new_blog = models.Blog(title=request.title, body=request.body, user_id=1)
    db.add(new_blog) # Menambahkan objek new_blog ke sesi database (db). 
@@ -23,7 +26,7 @@ def create(request: schema.Blog, db:Session = Depends(database.get_db)):
    return new_blog
 
 # get by id
-@router.get('/blog/{id}', status_code=status.HTTP_200_OK, response_model=schema.ShowBlog, tags=['blogs']) # response_model=schema.ShowBlog --> supaya response tidak menampilkan id (sesuai dengan schema.showblog)
+@router.get('/{id}', status_code=status.HTTP_200_OK, response_model=schema.ShowBlog) # response_model=schema.ShowBlog --> supaya response tidak menampilkan id (sesuai dengan schema.showblog)
 def show(id, response:Response, db:Session = Depends(database.get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id == id).first()
     if not blog:
@@ -36,7 +39,7 @@ def show(id, response:Response, db:Session = Depends(database.get_db)):
     return blog
 
 # delete
-@router.delete('/blog/{id}', status_code=status.HTTP_204_NO_CONTENT,tags=['blogs'])
+@router.delete('/{id}', status_code=status.HTTP_204_NO_CONTENT)
 def delete(id, db:Session = Depends(database.get_db)):
      blog = db.query(models.Blog).filter(models.Blog.id == id).first()
      if not blog:
@@ -47,7 +50,7 @@ def delete(id, db:Session = Depends(database.get_db)):
         raise HTTPException(status_code=status.HTTP_200_OK, detail='blog is deleted')
      
 # update
-@router.put('/blog/{id}', status_code=status.HTTP_202_ACCEPTED,tags=['blogs'])
+@router.put('/{id}', status_code=status.HTTP_202_ACCEPTED)
 def update(id: int, request: schema.Blog, db: Session = Depends(database.get_db)):
     # cara alternative, bisa juga seperti pada update
     blogs = models.Blog
