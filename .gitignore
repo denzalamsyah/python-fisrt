@@ -1,5 +1,8 @@
 __pychase__
 
+# environments
 venv
 
 .DS_store
+blog.db
+.vercel
