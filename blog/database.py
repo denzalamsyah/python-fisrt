@@ -1,18 +1,25 @@
 # ========= KONEKSI DI SQLITE =========
-
+import os
 from sqlalchemy import create_engine # Fungsi ini digunakan untuk membuat koneksi ke database yang ditentukan dalam URL database.
 from sqlalchemy.ext.declarative import declarative_base #Ini adalah base class untuk membuat model ORM (Object-Relational Mapping). Semua model database akan mewarisi dari Base.
 from sqlalchemy.orm import sessionmaker # Fungsi ini membuat kelas sesi yang digunakan untuk berinteraksi dengan database. Sesi digunakan untuk mengeksekusi perintah ke database dan menjaga koneksi tetap terbuka.
 
-
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 # Membuat URL koneksi ke database.
-SQLALCHEMY_DATABASE_URL = "sqlite:///./blog.db"
-# SQLALCHEMY_DATABASE_URL = "postgresql://user:password@postgresserver/db"
+if ENVIRONMENT == "production":
+    # Koneksi PostgreSQL untuk environment production
+    SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@host:port/dbname")
+else:
+    # Koneksi SQLite untuk environment development
+    SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL","sqlite:///./blog.db")
 
-# Menginisialisasi koneksi database (engine) berdasarkan URL tersebut.
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
+# Inisialisasi koneksi database
+if ENVIRONMENT == "production":
+    engine = create_engine(SQLALCHEMY_DATABASE_URL)
+else:
+    # Khusus untuk SQLite, perlu `connect_args={"check_same_thread": False}`
+    engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+
 
 # Membuat sesi untuk mengelola transaksi database.
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

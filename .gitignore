@@ -2,7 +2,9 @@ __pychase__
 
 # environments
 venv
+.env
 
 .DS_store
+# Mengabaikan file blog.db
 blog.db
 .vercel
